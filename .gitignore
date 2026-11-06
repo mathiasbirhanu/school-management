@@ -1,0 +1,22 @@
+# .NET
+bin/
+obj/
+*.user
+appsettings.*.local.json
+
+# Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Env & IDE
+.env
+.env.local
+.vs/
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
