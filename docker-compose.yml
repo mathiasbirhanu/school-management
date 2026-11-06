@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: scholaris-db
+    environment:
+      POSTGRES_USER: scholaris
+      POSTGRES_PASSWORD: scholaris
+      POSTGRES_DB: scholaris
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scholaris -d scholaris"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+    container_name: scholaris-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: Host=db;Port=5432;Database=scholaris;Username=scholaris;Password=scholaris
+      Jwt__Secret: "change-me-in-production-scholaris-super-secret-key-0123456789"
+      Jwt__Issuer: Scholaris
+      Ai__Provider: Mock            # Mock | Gemini | Groq | Ollama  (free-tier friendly)
+      Payments__Mode: Mock          # Mock | Live  (Live requires provider API keys)
+      Payments__Chapa__ApiKey: ""
+      Cors__Origins: "http://localhost:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  web:
+    build:
+      context: ./frontend
+    container_name: scholaris-web
+    environment:
+      NEXT_PUBLIC_API_BASE: http://localhost:8080
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
